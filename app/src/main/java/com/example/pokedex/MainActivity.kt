@@ -23,23 +23,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.palette.graphics.Palette
 import com.example.pokedex.screens.PokeListScreen
 import com.example.pokedex.ui.theme.PokedexTheme
 import com.example.pokedex.ui_components.PokeListFilterCard
+import com.example.pokedex.viewmodels.PokeViewModel
+import dagger.hilt.EntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             PokedexTheme {
+                val pokeViewModel = hiltViewModel<PokeViewModel>()
 
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
 //                    color = Color.Red
                 ) {
-                    PokeListScreen()
+                    PokeListScreen(pokeViewModel)
 //                    Column(modifier = Modifier.fillMaxSize()) {
 //                        AsyncImage(
 //                            model = ImageRequest.Builder(LocalContext.current)
