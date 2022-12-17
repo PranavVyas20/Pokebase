@@ -21,14 +21,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.palette.graphics.Palette
-import coil.compose.AsyncImage
-import coil.decode.SvgDecoder
-import coil.request.ImageRequest
+import com.example.pokedex.screens.PokeListScreen
 import com.example.pokedex.ui.theme.PokedexTheme
+import com.example.pokedex.ui_components.PokeListFilterCard
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +39,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
 //                    color = Color.Red
                 ) {
-                    Column(modifier = Modifier.fillMaxSize()) {
+                    PokeListScreen()
+//                    Column(modifier = Modifier.fillMaxSize()) {
 //                        AsyncImage(
 //                            model = ImageRequest.Builder(LocalContext.current)
 //                                .data("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png")
@@ -54,9 +53,9 @@ class MainActivity : ComponentActivity() {
 //                            },
 //                            contentDescription = "",
 //                        )
-                        dominateColorView()
+//                        dominateColorView()
 
-                    }
+//                    }
 
                 }
             }
