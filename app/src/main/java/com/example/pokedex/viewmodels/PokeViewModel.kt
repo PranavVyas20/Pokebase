@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
 import com.example.pokedex.models.PokeListEntry
+import com.example.pokedex.models.PokemonResonse
 import com.example.pokedex.repository.PokeRepository
 import com.example.pokedex.util.ApiResponse
 import com.example.pokedex.util.Constants
@@ -32,6 +33,8 @@ class PokeViewModel @Inject constructor(
 
     private var currentPage = 0
 
+    private val singlePokemonList = mutableListOf<PokeListEntry>()
+
     private val dummyPokemonList = listOf<PokeListEntry>(
         PokeListEntry("", "", 1),
         PokeListEntry("", "", 1),
@@ -46,8 +49,10 @@ class PokeViewModel @Inject constructor(
         PokeListEntry("", "", 1),
         PokeListEntry("", "", 1),
     )
-    private val pokemonList = mutableStateOf<List<PokeListEntry>>(listOf())
+    private val _singlePokemonState = mutableStateOf<UIState<List<PokeListEntry>>>(UIState(data = listOf()))
+    val singlePokemonState get() = _singlePokemonState
 
+    private val pokemonList = mutableStateOf<List<PokeListEntry>>(listOf())
     private val _pokemonsState =
         mutableStateOf<UIState<List<PokeListEntry>>>(UIState(data = dummyPokemonList))
     val pokemonsState get() = _pokemonsState
@@ -58,11 +63,13 @@ class PokeViewModel @Inject constructor(
             pokeRepository.getPokemonsPaginated(PAGE_SIZE, currentPage * PAGE_SIZE)
                 .onEach { apiResponse ->
                     when (apiResponse) {
+
                         is ApiResponse.Success -> {
                             val pokeEntries: MutableList<PokeListEntry> = mutableListOf()
 
                             // create list of pokeListEntry with icon url
                             apiResponse.data!!.results.forEach { pokeListResultItem ->
+
                                 val pokeNumber = if (pokeListResultItem.url.endsWith("/")) {
                                     pokeListResultItem.url.dropLast(1)
                                         .takeLastWhile { it.isDigit() }
@@ -70,6 +77,7 @@ class PokeViewModel @Inject constructor(
                                     pokeListResultItem.url.takeLastWhile { it.isDigit() }
                                 }
                                 val pokeImageUrl = Constants.BASE_ICON_URL + pokeNumber + ".png"
+
                                 val pokeListEntry = PokeListEntry(
                                     pokeListResultItem.name.replaceFirstChar { it.uppercase() },
                                     pokeImageUrl,
@@ -80,8 +88,7 @@ class PokeViewModel @Inject constructor(
                             pokemonList.value += pokeEntries
 
                             _pokemonsState.value = UIState(
-                                isLoading = false,
-                                data = pokemonList.value
+                                isLoading = false, data = pokemonList.value
                             )
                             currentPage++
                             Log.d("pokemonState", _pokemonsState.toString())
@@ -91,7 +98,7 @@ class PokeViewModel @Inject constructor(
                                 UIState(isLoading = false, error = apiResponse.message)
                         }
                         is ApiResponse.Loading -> {
-                            if(currentPage < 1) {
+                            if (currentPage < 1) {
                                 _pokemonsState.value =
                                     UIState(isLoading = true, data = dummyPokemonList, error = null)
                             }
@@ -104,8 +111,32 @@ class PokeViewModel @Inject constructor(
 
     fun getPokemon(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            pokeRepository.getPokemon(name).onEach {
-                Log.d("apiResponse_Pokemon", it.data.toString())
+            pokeRepository.getPokemon(name).onEach { apiResponse ->
+                when (apiResponse) {
+
+                    is ApiResponse.Success -> {
+                        val pokemonResonse = apiResponse.data
+                        val pokeImageUrl =
+                            Constants.BASE_ICON_URL + pokemonResonse!!.pokemonId + ".png"
+                        val singlePokeEntry =
+                            PokeListEntry(
+                                pokemonName = apiResponse.data.pokemonName,
+                                imageUrl = pokeImageUrl,
+                                number = pokemonResonse.pokemonId
+                            )
+
+                        singlePokemonList.clear()
+                        singlePokemonList.add(singlePokeEntry)
+                        _pokemonsState.value = UIState(false, data = singlePokemonList)
+                    }
+                    is ApiResponse.Error -> {
+                        _singlePokemonState.value = UIState(false, error = apiResponse.message)
+                    }
+                    is ApiResponse.Loading -> {
+                        _pokemonsState.value = UIState(true, data = listOf<PokeListEntry>())
+                    }
+                }
+                Log.d("apiResponse_Pokemon", apiResponse.data.toString())
             }.launchIn(viewModelScope)
         }
     }
@@ -125,6 +156,14 @@ class PokeViewModel @Inject constructor(
             palette?.dominantSwatch?.rgb?.let { colorValue ->
                 onFinish(Color(colorValue))
             }
+        }
+    }
+
+    fun clearSearchBar() {
+        if(pokemonList.value.isNotEmpty()) {
+            _pokemonsState.value = UIState(isLoading = false, data = pokemonList.value)
+        } else {
+            getPokemonsPaginated()
         }
     }
 

@@ -39,16 +39,20 @@ fun PokeListScreen(pokeViewModel: PokeViewModel) {
     val filterScreenVisibility = remember { mutableStateOf(false) }
     val blackScreenVisibility = remember { mutableStateOf(false) }
     val pokemonsState = pokeViewModel.pokemonsState.value
+//    val pokemonsState = pokeViewModel.singlePokemonState.value
 
     LaunchedEffect(key1 = Unit) {
         pokeViewModel.getPokemonsPaginated()
+//        pokeViewModel.getPokemon("pikachu")
     }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(start = 15.dp, end = 15.dp)) {
             PokeList(
                 pokemonsState.data!!,
                 pokeViewModel::calcDominantColor,
-                pokeViewModel::getPokemonsPaginated
+                pokeViewModel::getPokemonsPaginated,
+                pokeViewModel::getPokemon,
+                pokeViewModel::clearSearchBar
             )
         }
 
