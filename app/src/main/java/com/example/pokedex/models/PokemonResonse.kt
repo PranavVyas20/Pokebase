@@ -7,6 +7,5 @@ data class PokemonResonse(
     @SerializedName("id") val pokemonId: Int,
     @SerializedName("weight") val pokemonWeight: Int,
     @SerializedName("height") val pokemonHeight: Int,
-    @SerializedName("types") val pokemonTypes: List<PokemonTypeListResponse>,
-
+    @SerializedName("types") val pokemonTypes: List<PokemonTypesListPropertyResponse>,
 )

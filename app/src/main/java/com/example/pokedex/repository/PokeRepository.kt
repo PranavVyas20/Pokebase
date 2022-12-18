@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.flow
 
 class PokeRepository(private val pokeApi: PokeAPi) {
 
-    suspend fun getPokemons(limit: Int, offset: Int): Flow<ApiResponse<PokemonListResponse>> {
+    suspend fun getPokemonsPaginated(limit: Int, offset: Int): Flow<ApiResponse<PokemonListResponse>> {
         return flow {
             emit(ApiResponse.Loading())
             try {
@@ -21,7 +21,7 @@ class PokeRepository(private val pokeApi: PokeAPi) {
                     emit(ApiResponse.Error("Some error occured"))
                 }
             } catch (e: Exception) {
-                emit(ApiResponse.Error("Some error occured"))
+                emit(ApiResponse.Error("${e.message}"))
             }
         }
     }
@@ -37,7 +37,7 @@ class PokeRepository(private val pokeApi: PokeAPi) {
                     emit(ApiResponse.Error("Some error occured"))
                 }
             } catch (e: Exception) {
-                emit(ApiResponse.Error("Some error occured"))
+                emit(ApiResponse.Error("${e.message}"))
             }
         }
     }
@@ -53,7 +53,7 @@ class PokeRepository(private val pokeApi: PokeAPi) {
                     emit(ApiResponse.Error("Some error occured"))
                 }
             } catch (e: Exception) {
-                emit(ApiResponse.Error("Some error occured"))
+                emit(ApiResponse.Error("${e.message}"))
             }
         }
     }
