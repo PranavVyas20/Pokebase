@@ -1,7 +1,6 @@
 package com.example.pokedex.ui_components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -10,16 +9,20 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ClearAll
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pokedex.R
@@ -36,32 +39,92 @@ private val pokefilters: List<PokeListFilter> = listOf(
     PokeListFilter(type = "Fairy", bg = FairyType, icon = R.drawable.pokemon_type_icon_fairy),
     PokeListFilter(type = "Fire", bg = FireType, icon = R.drawable.pokemon_type_icon_fire),
     PokeListFilter(type = "Grass", bg = GrassType, icon = R.drawable.pokemon_type_icon_grass),
-    PokeListFilter(
-        type = "Electric", bg = ElectricType, icon = R.drawable.pokemon_type_icon_electric
-    ),
+    PokeListFilter(type = "Electric", bg = ElectricType, icon = R.drawable.pokemon_type_icon_electric),
     PokeListFilter(type = "Psychic", bg = PhysicType, icon = R.drawable.pokemon_type_icon_psychic)
 )
 
-@Preview
 @Composable
-fun PokeListFilterCard() {
+fun PokeListFilterCard(
+    changeVisibility: () -> Unit,
+    onFilterClick: (String) -> Unit,
+    resetUIState: () -> Unit,
+    clearSearchBox: () -> Unit
+
+) {
     Card(
-        modifier = Modifier.padding(start = 15.dp, end = 15.dp),
+        modifier = Modifier
+            .padding(start = 23.dp, end = 23.dp)
+            .shadow(50.dp),
         backgroundColor = Color.White,
         shape = RoundedCornerShape(10.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Séarch by type", color = CustomPurpleBold,
-                fontFamily = FontFamily(Font(R.font.tt_interfaces_bold)),
-                fontSize = 35.sp
-            )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    maxLines = 1,
+                    text = "Séarch by type",
+                    color = CustomPurpleBold,
+                    fontFamily = FontFamily(Font(R.font.tt_interfaces_bold)),
+                    fontSize = 25.sp
+                )
+                Row() {
+                    IconButton(
+                        modifier = Modifier
+                            .align(Alignment.Bottom)
+//                            .width(24.dp),
+                        ,
+                        onClick = {
+                            //rest the filter and use the already saved list(if present)
+                            changeVisibility()
+                            resetUIState()
+                            clearSearchBox()
+                        }) {
+                        Icon(
+                            modifier = Modifier
+                                .align(Alignment.Bottom),
+                            imageVector = Icons.Default.ClearAll,
+                            contentDescription = "",
+                            tint = CustomPurpleLight
+                        )
+                    }
+                    IconButton(
+                        modifier = Modifier
+                            .align(Alignment.Bottom)
+                            .width(24.dp),
+                        onClick = {
+                            //close the filter card
+                            changeVisibility()
+                        }) {
+                        Icon(
+                            modifier = Modifier.align(Alignment.Bottom),
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "",
+                            tint = CustomPurpleLight
+                        )
+                    }
+                }
+
+            }
+
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2), modifier = Modifier.fillMaxWidth()
             ) {
                 items(pokefilters) { item ->
-                    PokeListFilterItem(item.type, item.bg, item.icon)
+                    PokeListFilterItem(
+                        item.type,
+                        item.bg,
+                        item.icon,
+                        onFilterClick,
+                        changeVisibility,
+                        clearSearchBox
+                    )
                 }
             }
         }
@@ -69,12 +132,22 @@ fun PokeListFilterCard() {
 }
 
 @Composable
-fun PokeListFilterItem(type: String, bg: Color, icon: Int) {
+fun PokeListFilterItem(
+    type: String,
+    bg: Color,
+    icon: Int,
+    onFilterClick: (String) -> Unit,
+    changeVisibility: () -> Unit,
+    clearSearchBox: () -> Unit
+) {
     Card(
         modifier = Modifier
             .padding(10.dp)
             .clickable {
-                       // make api call and hide this filter
+                // make api call and hide this filter
+                onFilterClick(type.replaceFirstChar { it.lowercaseChar() })
+                changeVisibility()
+                clearSearchBox()
             }, backgroundColor = bg, shape = RoundedCornerShape(10.dp)
     ) {
         Row(

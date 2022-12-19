@@ -13,15 +13,24 @@ import com.example.pokedex.screens.header
 
 @Composable
 fun PokeList(
+    searchBarText: String,
     pokemonListEntries: List<PokeListEntry>,
     calculateDominantColor: (drawable: Drawable, onFinish: (Color) -> Unit) -> Unit,
     getPokemonsPaginated: () -> Unit,
     onSearchPressed: (query: String) -> Unit,
-    clearSearchBar: () -> Unit
+    onClickDismissed: () -> Unit,
+    clearSearchBox: () -> Unit,
+    updateSearchBox: (String) -> Unit
 ) {
     LazyVerticalGrid(columns = GridCells.Fixed(2)) {
         header {
-            PokeListHeader(onSearchPressed, clearSearchBar)
+            PokeListHeader(
+                searchBarText,
+                onSearchPressed,
+                onClickDismissed,
+                clearSearchBox,
+                updateSearchBox
+            )
         }
         items(pokemonListEntries) { pokeListEntry ->
             PokeListItem(
@@ -33,7 +42,7 @@ fun PokeList(
         }
         item {
             LaunchedEffect(true) {
-                if(pokemonListEntries.size > 1) {
+                if (pokemonListEntries.size > 1) {
                     Log.d("pokemonsPaginatedEol", "offsetidk")
                     getPokemonsPaginated()
                 }

@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -28,50 +29,73 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SearchBar(onSearchPressed: (query: String) -> Unit, clearSearchBar: () -> Unit) {
+fun SearchBar(
+    searchBoxText: String,
+    onSearchPressed: (query: String) -> Unit,
+    onClickDismissed: () -> Unit,
+    clearSearchBox: () -> Unit,
+    updateSearchBox: (String) -> Unit
+) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val showDismissButton = remember {
+        mutableStateOf(false)
+    }
 
-    val searchQuery = remember { mutableStateOf("") }
-    TextField(value = searchQuery.value, onValueChange = {
-        searchQuery.value = it
-    }, placeholder = {
-        Text(
-            text = "Name",
-            fontFamily = FontFamily(Font(R.font.varela_round)),
-            color = CustomPurpleLight
-        )
-    }, modifier = Modifier.fillMaxWidth(),
+    val searchQuery = searchBoxText
+
+    TextField(
+        value = searchQuery,
+        onValueChange = {
+            updateSearchBox(it)
+            showDismissButton.value = true
+        },
+        placeholder = {
+            Text(
+                text = "Name",
+                fontFamily = FontFamily(Font(R.font.varela_round)),
+                color = CustomPurpleLight
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged {
+                if (it.isFocused) {
+                    showDismissButton.value = true
+                }
+            },
         shape = RoundedCornerShape(8.dp),
-        leadingIcon = {
-            Icon(Icons.Default.Search, "", tint = CustomPurpleLight)
-        }, colors = TextFieldDefaults.textFieldColors(
+        leadingIcon = { Icon(Icons.Default.Search, "", tint = CustomPurpleLight) },
+        colors = TextFieldDefaults.textFieldColors(
             backgroundColor = Color(0xFFe5f5f5),
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
         ),
         trailingIcon = {
-            IconButton(onClick = {
-                if(searchQuery.value.isNotEmpty()) {
-                    // load already saved pokemon list
-                    clearSearchBar()
-                    searchQuery.value = ""
+            if (showDismissButton.value) {
+                IconButton(onClick = {
+                    if (searchQuery.isNotEmpty()) {
+                        // load already saved pokemon list
+                        onClickDismissed()
+                        clearSearchBox()
+                    }
+                    showDismissButton.value = false
                     focusManager.clearFocus()
                     keyboardController?.hide()
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "",
+                        tint = CustomPurpleLight
+                    )
                 }
-            }) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "",
-                    tint = CustomPurpleLight
-                )
             }
         },
         singleLine = true,
         keyboardActions = KeyboardActions(onSearch = {
             // Search for pokemon
             CoroutineScope(Dispatchers.IO).launch {
-                onSearchPressed(searchQuery.value)
+                onSearchPressed(searchQuery)
             }
             // remove focus
             focusManager.clearFocus()

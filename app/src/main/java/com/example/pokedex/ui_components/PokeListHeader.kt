@@ -15,10 +15,15 @@ import com.example.pokedex.ui.theme.CustomPurpleBold
 import com.example.pokedex.ui.theme.CustomPurpleLight
 
 @Composable
-fun PokeListHeader(onSearchPressed: (query: String) -> Unit, clearSearchBar: () -> Unit) {
+fun PokeListHeader(
+    searchBoxText: String,
+    onSearchPressed: (query: String) -> Unit,
+    onClickDismissed: () -> Unit,
+    clearSearchBox: () -> Unit,
+    updateSearchBox: (String) -> Unit
+) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.padding(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(10.dp)
     ) {
         Text(
             text = "Pokédex", color = CustomPurpleBold,
@@ -30,6 +35,13 @@ fun PokeListHeader(onSearchPressed: (query: String) -> Unit, clearSearchBar: () 
             color = CustomPurpleLight,
             fontFamily = FontFamily(Font(R.font.varela_round))
         )
-        SearchBar(onSearchPressed, clearSearchBar)
+        SearchBar(
+            searchBoxText = searchBoxText,
+            onSearchPressed,
+            onClickDismissed,
+            clearSearchBox,
+            updateSearchBox
+        )
+
     }
 }
