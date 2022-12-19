@@ -47,7 +47,7 @@ private val pokefilters: List<PokeListFilter> = listOf(
 fun PokeListFilterCard(
     changeVisibility: () -> Unit,
     onFilterClick: (String) -> Unit,
-    resetUIState: () -> Unit,
+    resetUIState: (Boolean) -> Unit,
     clearSearchBox: () -> Unit
 
 ) {
@@ -83,7 +83,7 @@ fun PokeListFilterCard(
                         onClick = {
                             //rest the filter and use the already saved list(if present)
                             changeVisibility()
-                            resetUIState()
+                            resetUIState(true)
                             clearSearchBox()
                         }) {
                         Icon(

@@ -42,10 +42,8 @@ fun SearchBar(
         mutableStateOf(false)
     }
 
-    val searchQuery = searchBoxText
-
     TextField(
-        value = searchQuery,
+        value = searchBoxText,
         onValueChange = {
             updateSearchBox(it)
             showDismissButton.value = true
@@ -74,7 +72,7 @@ fun SearchBar(
         trailingIcon = {
             if (showDismissButton.value) {
                 IconButton(onClick = {
-                    if (searchQuery.isNotEmpty()) {
+                    if (searchBoxText.isNotEmpty()) {
                         // load already saved pokemon list
                         onClickDismissed()
                         clearSearchBox()
@@ -95,7 +93,7 @@ fun SearchBar(
         keyboardActions = KeyboardActions(onSearch = {
             // Search for pokemon
             CoroutineScope(Dispatchers.IO).launch {
-                onSearchPressed(searchQuery)
+                onSearchPressed(searchBoxText)
             }
             // remove focus
             focusManager.clearFocus()

@@ -32,6 +32,8 @@ class PokeViewModel @Inject constructor(
     data class UIState<T : Any>(
         val isLoading: Boolean = true, val data: T? = null, val error: String? = null
     )
+    private var lastResponseType = "pokemonsList"
+
     private var _filterScreenVisibility by mutableStateOf(false)
     val filterScreenVisibility get() = _filterScreenVisibility
 
@@ -79,6 +81,7 @@ class PokeViewModel @Inject constructor(
                     when (apiResponse) {
 
                         is ApiResponse.Success -> {
+                            lastResponseType = "pokemonsList"
                             val pokeEntries: MutableList<PokeListEntry> = mutableListOf()
 
                             // create list of pokeListEntry with icon url
@@ -130,8 +133,8 @@ class PokeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             pokeRepository.getPokemon(name).onEach { apiResponse ->
                 when (apiResponse) {
-
                     is ApiResponse.Success -> {
+                        lastResponseType = "singlePokemonList"
                         val pokemonResonse = apiResponse.data
                         val pokeImageUrl =
                             Constants.BASE_ICON_URL + pokemonResonse!!.pokemonId + ".png"
@@ -163,6 +166,7 @@ class PokeViewModel @Inject constructor(
             pokeRepository.getPokemonbyType(pokemonType).onEach { apiResponse ->
                 when (apiResponse) {
                     is ApiResponse.Success -> {
+                        lastResponseType = "pokemonsTypeList"
                         val response = apiResponse.data!!.pokemonType
                         val pokemonTypesList: MutableList<PokeListEntry> = mutableListOf()
 
@@ -208,11 +212,15 @@ class PokeViewModel @Inject constructor(
         }
     }
 
-    fun resetUIState() {
-        if (pokemonList.value.isNotEmpty()) {
+    fun resetUIState(resetFilterApplied: Boolean = false) {
+        if(lastResponseType == "pokemonsList" || lastResponseType == "singlePokemonList") {
+            if (pokemonList.value.isNotEmpty()) {
+                _pokemonsState.value = UIState(isLoading = false, data = pokemonList.value)
+            } else {
+                getPokemonsPaginated()
+            }
+        } else if(resetFilterApplied) {
             _pokemonsState.value = UIState(isLoading = false, data = pokemonList.value)
-        } else {
-            getPokemonsPaginated()
         }
     }
 
