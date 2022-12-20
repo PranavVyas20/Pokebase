@@ -1,6 +1,7 @@
 package com.example.pokedex.screens
 
 import android.graphics.drawable.Drawable
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -42,15 +43,14 @@ import com.example.pokedex.ui.theme.CustomPurpleLight
 import com.example.pokedex.ui.theme.CustomPurpleSemiBold
 import com.example.pokedex.viewmodels.PokeViewModel
 
-//val dominantColor = Color.Red
-
 @Composable
-// need a dominant color here
 fun PokemonDetailScreen(
     pokeViewModel: PokeViewModel, navController: NavController
-//    dominantColor: Color,
-//    pokemonImage: Drawable? = null
 ) {
+    BackHandler() {
+        navController.popBackStack()
+        pokeViewModel.returnedBackFromPokeDetail.value = true
+    }
     val searchPokemonState = pokeViewModel.searchedPokemonState.value
 
     if (!searchPokemonState.isLoading && searchPokemonState.data != null) {

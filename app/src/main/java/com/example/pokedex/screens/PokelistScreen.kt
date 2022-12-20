@@ -1,5 +1,8 @@
 package com.example.pokedex.screens
 
+import android.app.Activity
+import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,11 +23,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.pokedex.ui.theme.CustomPurpleSemiBold
 import com.example.pokedex.ui_components.PokeList
 import com.example.pokedex.ui_components.PokeListFilterCard
+import com.example.pokedex.util.Constants
 import com.example.pokedex.viewmodels.PokeViewModel
 
 fun LazyGridScope.header(
@@ -41,7 +46,22 @@ fun PokeListScreen(pokeViewModel: PokeViewModel, navController: NavController) {
     val searchBoxText = pokeViewModel.searchBoxText
 
     LaunchedEffect(key1 = Unit) {
-        pokeViewModel.getPokemonsPaginated()
+        Log.d("launchedEffect", "runned: ${pokeViewModel.lastResponseType}")
+        if (!pokeViewModel.returnedBackFromPokeDetail.value) {
+            pokeViewModel.getPokemonsPaginated()
+        } else {
+            pokeViewModel.returnedBackFromPokeDetail.value = true
+        }
+    }
+    val activity = LocalContext.current as? Activity
+
+    BackHandler() {
+        if (pokeViewModel.lastResponseType == Constants.LastResponseType.SEARCHED_POKE_LIST || pokeViewModel.lastResponseType == Constants.LastResponseType.POKE_DETAIL) {
+            pokeViewModel.resetUIState(Constants.LastResponseType.NORMAL_POKE_LIST)
+            pokeViewModel.clearSearchBox()
+        } else {
+            activity?.finish()
+        }
     }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(start = 15.dp, end = 15.dp)) {

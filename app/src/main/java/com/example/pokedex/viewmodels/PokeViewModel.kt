@@ -33,7 +33,9 @@ class PokeViewModel @Inject constructor(
         val isLoading: Boolean = true, val data: T? = null, val error: String? = null
     )
 
-    private var lastResponseType = "pokemonsList"
+    var returnedBackFromPokeDetail = mutableStateOf(false)
+
+    var lastResponseType = Constants.LastResponseType.NORMAL_POKE_LIST
 
     var dominantColor by mutableStateOf<Color?>(null)
     var loadedPokemonImage by mutableStateOf<Drawable?>(null)
@@ -46,12 +48,11 @@ class PokeViewModel @Inject constructor(
     private var _blackScreenVisibility by mutableStateOf(false)
     val blackScreenVisibility get() = _blackScreenVisibility
 
-    private var containsPokemonTypes = false
+    var containsPokemonTypes = false
 
     private var currentPage = 0
 
     private val singlePokemonList = mutableListOf<PokeListEntry>()
-
 
     private val dummyPokemonList = createDummyList()
 
@@ -71,9 +72,9 @@ class PokeViewModel @Inject constructor(
             pokeRepository.getPokemonsPaginated(PAGE_SIZE, currentPage * PAGE_SIZE)
                 .onEach { apiResponse ->
                     when (apiResponse) {
-
                         is ApiResponse.Success -> {
-                            lastResponseType = "pokemonsList"
+                            containsPokemonTypes = false
+                            lastResponseType = Constants.LastResponseType.NORMAL_POKE_LIST
                             val pokeEntries: MutableList<PokeListEntry> = mutableListOf()
 
                             // create list of pokeListEntry with icon url
@@ -127,7 +128,12 @@ class PokeViewModel @Inject constructor(
             pokeRepository.getPokemon(name).onEach { apiResponse ->
                 when (apiResponse) {
                     is ApiResponse.Success -> {
-                        lastResponseType = "singlePokemonList"
+                        lastResponseType = if(getPokemonDetails) {
+                            Constants.LastResponseType.POKE_DETAIL
+                        } else {
+                            containsPokemonTypes = false
+                            Constants.LastResponseType.SEARCHED_POKE_LIST
+                        }
                         val pokemonResponse = apiResponse.data
                         val pokeImageUrl =
                             Constants.BASE_ICON_URL + pokemonResponse!!.pokemonId + ".png"
@@ -175,7 +181,8 @@ class PokeViewModel @Inject constructor(
             pokeRepository.getPokemonbyType(pokemonType).onEach { apiResponse ->
                 when (apiResponse) {
                     is ApiResponse.Success -> {
-                        lastResponseType = "pokemonsTypeList"
+                        containsPokemonTypes = true
+                        lastResponseType = Constants.LastResponseType.FILTERED_POKE_LIST
                         val response = apiResponse.data!!.pokemonType
                         val pokemonTypesList: MutableList<PokeListEntry> = mutableListOf()
 
@@ -231,6 +238,13 @@ class PokeViewModel @Inject constructor(
             }
         } else if (resetFilterApplied) {
             _pokemonsState.value = UIState(isLoading = false, data = pokemonList.value)
+        }
+    }
+    fun resetUIState(responseType: String) {
+        when(responseType) {
+            Constants.LastResponseType.NORMAL_POKE_LIST -> {
+                _pokemonsState.value = UIState(false, pokemonList.value.toList())
+            }
         }
     }
 
