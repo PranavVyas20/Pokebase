@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavController
 import com.example.pokedex.models.PokeListEntry
 import com.example.pokedex.screens.header
 
@@ -17,10 +18,13 @@ fun PokeList(
     pokemonListEntries: List<PokeListEntry>,
     calculateDominantColor: (drawable: Drawable, onFinish: (Color) -> Unit) -> Unit,
     getPokemonsPaginated: () -> Unit,
-    onSearchPressed: (query: String) -> Unit,
+    onSearchPressed: (query: String, Boolean) -> Unit,
     onClickDismissed: () -> Unit,
     clearSearchBox: () -> Unit,
-    updateSearchBox: (String) -> Unit
+    updateSearchBox: (String) -> Unit,
+    getDominantColorAndDrawable: (Color?, Drawable?) -> Unit,
+    getPokemonDetails: (String, Boolean) -> Unit,
+    navController: NavController
 ) {
     LazyVerticalGrid(columns = GridCells.Fixed(2)) {
         header {
@@ -35,9 +39,13 @@ fun PokeList(
         items(pokemonListEntries) { pokeListEntry ->
             PokeListItem(
                 pokeListEntry.pokemonName,
+                pokeListEntry.formattedNumber,
                 pokeListEntry.number,
                 pokeListEntry.imageUrl,
-                calculateDominantColor
+                calculateDominantColor,
+                getDominantColorAndDrawable,
+                getPokemonDetails,
+                navController
             )
         }
         item {

@@ -17,7 +17,7 @@ import com.example.pokedex.ui.theme.CustomPurpleLight
 @Composable
 fun PokeListHeader(
     searchBoxText: String,
-    onSearchPressed: (query: String) -> Unit,
+    onSearchPressed: (query: String, Boolean) -> Unit,
     onClickDismissed: () -> Unit,
     clearSearchBox: () -> Unit,
     updateSearchBox: (String) -> Unit

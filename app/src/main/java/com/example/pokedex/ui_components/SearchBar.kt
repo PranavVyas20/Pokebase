@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SearchBar(
     searchBoxText: String,
-    onSearchPressed: (query: String) -> Unit,
+    onSearchPressed: (query: String, Boolean) -> Unit,
     onClickDismissed: () -> Unit,
     clearSearchBox: () -> Unit,
     updateSearchBox: (String) -> Unit
@@ -93,7 +93,7 @@ fun SearchBar(
         keyboardActions = KeyboardActions(onSearch = {
             // Search for pokemon
             CoroutineScope(Dispatchers.IO).launch {
-                onSearchPressed(searchBoxText)
+                onSearchPressed(searchBoxText, false)
             }
             // remove focus
             focusManager.clearFocus()

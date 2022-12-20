@@ -1,6 +1,7 @@
 package com.example.pokedex.ui_components
 
 import android.graphics.drawable.Drawable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
@@ -18,9 +19,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pokedex.R
+import com.example.pokedex.navigation.Screen
 import com.example.pokedex.ui.theme.shimmerColor
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.placeholder
@@ -29,17 +32,33 @@ import com.google.accompanist.placeholder.shimmer
 @Composable
 fun PokeListItem(
     pokemonName: String,
+    pokemonFormattedNumber: String,
     pokemonNumber: Int,
     pokemonImageUrl: String,
-    calculateDominantColor: (drawable: Drawable, onFinish: (Color) -> Unit) -> Unit
+    calculateDominantColor: (drawable: Drawable, onFinish: (Color) -> Unit) -> Unit,
+    getDominantColorAndDrawable: (Color?, Drawable?) -> Unit,
+    getPokemonDetails: (String, Boolean) -> Unit,
+    navController: NavController
 ) {
     val showShimmer = remember { mutableStateOf(true) }
-    val pokemonDominantColor = remember { mutableStateOf(Color(0xFFb9e8d5))}
+    val pokemonDominantColor = remember { mutableStateOf(Color.White)}
+
+    val loadedPokemonDrawable = remember {
+        mutableStateOf<Drawable?>(null)
+    }
 
     Card(
         modifier = Modifier
             .padding(8.dp)
             .defaultMinSize(40.dp, 60.dp)
+            .clickable {
+                // Make api call
+                if (!showShimmer.value) {
+                    getPokemonDetails(pokemonName.replaceFirstChar { it.lowercaseChar() }, true)
+                    getDominantColorAndDrawable(pokemonDominantColor.value,loadedPokemonDrawable.value)
+                    navController.navigate(Screen.PokemonDetailScreen.route)
+                }
+            }
             .placeholder(
                 visible = showShimmer.value,
                 color = shimmerColor,
@@ -59,6 +78,7 @@ fun PokeListItem(
                 onSuccess = {
                     calculateDominantColor(it.result.drawable) { color ->
                         pokemonDominantColor.value = color
+                        loadedPokemonDrawable.value = it.result.drawable
                     }
                     println(it.result.drawable.toString())
                     showShimmer.value = false
@@ -77,7 +97,7 @@ fun PokeListItem(
                     color = Color(0xFF442a60)
                 )
                 Text(
-                    text = pokemonNumber.toString(), color = Color(0xFF442a60)
+                    text = pokemonFormattedNumber, color = Color(0xFF442a60)
                 )
             }
         }

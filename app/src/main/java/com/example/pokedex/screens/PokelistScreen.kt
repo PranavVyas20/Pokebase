@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.pokedex.ui.theme.CustomPurpleSemiBold
 import com.example.pokedex.ui_components.PokeList
 import com.example.pokedex.ui_components.PokeListFilterCard
@@ -33,7 +34,7 @@ fun LazyGridScope.header(
 }
 
 @Composable
-fun PokeListScreen(pokeViewModel: PokeViewModel) {
+fun PokeListScreen(pokeViewModel: PokeViewModel, navController: NavController) {
     val filterScreenVisibility = pokeViewModel.filterScreenVisibility
     val blackScreenVisibility = pokeViewModel.blackScreenVisibility
     val pokemonsState = pokeViewModel.pokemonsState.value
@@ -52,7 +53,10 @@ fun PokeListScreen(pokeViewModel: PokeViewModel) {
                 pokeViewModel::getPokemon,
                 pokeViewModel::resetUIState,
                 pokeViewModel::clearSearchBox,
-                pokeViewModel::updateSearchBox
+                pokeViewModel::updateSearchBox,
+                pokeViewModel::getDominantColorAndDrawable,
+                pokeViewModel::getPokemon,
+                navController
             )
         }
 

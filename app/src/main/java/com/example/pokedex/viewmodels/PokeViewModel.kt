@@ -6,13 +6,13 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
 import com.example.pokedex.models.PokeListEntry
+import com.example.pokedex.models.PokemonResonse
 import com.example.pokedex.repository.PokeRepository
 import com.example.pokedex.util.ApiResponse
 import com.example.pokedex.util.Constants
@@ -32,7 +32,11 @@ class PokeViewModel @Inject constructor(
     data class UIState<T : Any>(
         val isLoading: Boolean = true, val data: T? = null, val error: String? = null
     )
+
     private var lastResponseType = "pokemonsList"
+
+    var dominantColor by mutableStateOf<Color?>(null)
+    var loadedPokemonImage by mutableStateOf<Drawable?>(null)
 
     private var _filterScreenVisibility by mutableStateOf(false)
     val filterScreenVisibility get() = _filterScreenVisibility
@@ -48,29 +52,17 @@ class PokeViewModel @Inject constructor(
 
     private val singlePokemonList = mutableListOf<PokeListEntry>()
 
-    private val dummyPokemonList = listOf<PokeListEntry>(
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-        PokeListEntry("", "", 1),
-    )
-    private val _singlePokemonState =
-        mutableStateOf<UIState<List<PokeListEntry>>>(UIState(data = listOf()))
-    val singlePokemonState get() = _singlePokemonState
+
+    private val dummyPokemonList = createDummyList()
 
     private val pokemonList = mutableStateOf<List<PokeListEntry>>(listOf())
 
     private val _pokemonsState =
         mutableStateOf<UIState<List<PokeListEntry>>>(UIState(data = dummyPokemonList))
     val pokemonsState get() = _pokemonsState
+
+    private val _searchedPokemonState = mutableStateOf<UIState<PokemonResonse>>(UIState())
+    val searchedPokemonState get() = _searchedPokemonState
 
     fun getPokemonsPaginated() {
         _filterScreenVisibility = false
@@ -98,7 +90,8 @@ class PokeViewModel @Inject constructor(
                                 val pokeListEntry = PokeListEntry(
                                     pokeListResultItem.name.replaceFirstChar { it.uppercase() },
                                     pokeImageUrl,
-                                    pokeNumber.toInt()
+                                    getPokemonNumberFormatted(pokeNumber.toInt()),
+                                    number = pokeNumber.toInt()
                                 )
                                 pokeEntries.add(pokeListEntry)
                             }
@@ -129,31 +122,47 @@ class PokeViewModel @Inject constructor(
         }
     }
 
-    fun getPokemon(name: String) {
+    fun getPokemon(name: String, getPokemonDetails: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             pokeRepository.getPokemon(name).onEach { apiResponse ->
                 when (apiResponse) {
                     is ApiResponse.Success -> {
                         lastResponseType = "singlePokemonList"
-                        val pokemonResonse = apiResponse.data
+                        val pokemonResponse = apiResponse.data
                         val pokeImageUrl =
-                            Constants.BASE_ICON_URL + pokemonResonse!!.pokemonId + ".png"
+                            Constants.BASE_ICON_URL + pokemonResponse!!.pokemonId + ".png"
                         val singlePokeEntry =
                             PokeListEntry(
                                 pokemonName = apiResponse.data.pokemonName,
                                 imageUrl = pokeImageUrl,
-                                number = pokemonResonse.pokemonId
+                                formattedNumber = getPokemonNumberFormatted(pokemonResponse.pokemonId),
+                                number = pokemonResponse.pokemonId
                             )
+                        Log.d("getPokemon", pokemonResponse.toString())
 
-                        singlePokemonList.clear()
-                        singlePokemonList.add(singlePokeEntry)
-                        _pokemonsState.value = UIState(false, data = singlePokemonList)
+                        if (!getPokemonDetails) {
+                            singlePokemonList.clear()
+                            singlePokemonList.add(singlePokeEntry)
+                            _pokemonsState.value = UIState(false, data = singlePokemonList)
+                        } else {
+                            _searchedPokemonState.value =
+                                UIState(isLoading = false, pokemonResponse)
+                        }
                     }
                     is ApiResponse.Error -> {
-                        _singlePokemonState.value = UIState(false, error = apiResponse.message)
+                        if (!getPokemonDetails) {
+                            _pokemonsState.value =
+                                UIState(isLoading = false, null, error = apiResponse.message)
+                        } else {
+                            _searchedPokemonState.value = UIState(false, null, apiResponse.message)
+                        }
                     }
                     is ApiResponse.Loading -> {
-                        _pokemonsState.value = UIState(true, data = listOf<PokeListEntry>())
+                        if (!getPokemonDetails) {
+                            _pokemonsState.value = UIState(true, data = listOf<PokeListEntry>())
+                        } else {
+                            _searchedPokemonState.value = UIState(isLoading = false)
+                        }
                     }
                 }
                 Log.d("apiResponse_Pokemon", apiResponse.data.toString())
@@ -182,6 +191,7 @@ class PokeViewModel @Inject constructor(
                             val pokeListEntry = PokeListEntry(
                                 pokemonName = pokemonListResponse.name.replaceFirstChar { it.uppercase() },
                                 imageUrl = pokeImageUrl,
+                                formattedNumber = getPokemonNumberFormatted(pokeNumber.toInt()),
                                 number = pokeNumber.toInt()
                             )
                             pokemonTypesList.add(pokeListEntry)
@@ -193,8 +203,8 @@ class PokeViewModel @Inject constructor(
                             UIState(isLoading = false, error = apiResponse.message)
                     }
                     is ApiResponse.Loading -> {
-                            _pokemonsState.value =
-                                UIState(isLoading = true, data = dummyPokemonList, error = null)
+                        _pokemonsState.value =
+                            UIState(isLoading = true, data = dummyPokemonList, error = null)
                     }
                 }
                 Log.d("apiResponse_pokemonType", apiResponse.data.toString())
@@ -213,13 +223,13 @@ class PokeViewModel @Inject constructor(
     }
 
     fun resetUIState(resetFilterApplied: Boolean = false) {
-        if(lastResponseType == "pokemonsList" || lastResponseType == "singlePokemonList") {
+        if (lastResponseType == "pokemonsList" || lastResponseType == "singlePokemonList") {
             if (pokemonList.value.isNotEmpty()) {
                 _pokemonsState.value = UIState(isLoading = false, data = pokemonList.value)
             } else {
                 getPokemonsPaginated()
             }
-        } else if(resetFilterApplied) {
+        } else if (resetFilterApplied) {
             _pokemonsState.value = UIState(isLoading = false, data = pokemonList.value)
         }
     }
@@ -232,8 +242,32 @@ class PokeViewModel @Inject constructor(
     fun clearSearchBox() {
         searchBoxText = ""
     }
+
     fun updateSearchBox(text: String) {
         searchBoxText = text
+    }
+
+    fun getPokemonNumberFormatted(pokeNumber: Int): String {
+        val maxLength = 3
+        var additionalZeros = ""
+        val pokeNoFormatted = pokeNumber.toString()
+        repeat(maxLength - pokeNoFormatted.length) {
+            additionalZeros += '0'
+        }
+        return "#$additionalZeros$pokeNoFormatted"
+    }
+
+    private fun createDummyList(): List<PokeListEntry> {
+        val dummyList = mutableListOf<PokeListEntry>()
+        for (i in 1..12) {
+            dummyList.add(PokeListEntry("", "", i.toString(), i))
+        }
+        return dummyList.toList()
+    }
+
+    fun getDominantColorAndDrawable(color: Color?, drawable: Drawable?) {
+        dominantColor = color
+        loadedPokemonImage = drawable
     }
 
 }

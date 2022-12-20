@@ -8,4 +8,5 @@ data class PokemonResonse(
     @SerializedName("weight") val pokemonWeight: Int,
     @SerializedName("height") val pokemonHeight: Int,
     @SerializedName("types") val pokemonTypes: List<PokemonTypesListPropertyResponse>,
+    @SerializedName("stats") val pokemonStats: List<PokemonStatsResponse>
 )

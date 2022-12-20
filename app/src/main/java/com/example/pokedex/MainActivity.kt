@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.pokedex.navigation.Navigation
 import com.example.pokedex.screens.PokeListScreen
 import com.example.pokedex.ui.theme.PokedexTheme
 import com.example.pokedex.viewmodels.PokeViewModel
@@ -25,7 +26,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
 //                    color = Color.Red
                 ) {
-                    PokeListScreen(pokeViewModel)
+                    Navigation(pokeViewModel = pokeViewModel)
                 }
             }
         }
