@@ -37,10 +37,15 @@ class PokeRepository(private val pokeApi: PokeAPi, private val pokeDao: PokeDao)
                 if (response.code() == 200) {
                     emit(Resource.Success(response.body()!!))
                 } else {
-                    emit(Resource.Error("Some error occured"))
+                    val errorMsg = if(response.code() == 404) {
+                        "No matching results"
+                    } else {
+                        "Some error occured"
+                    }
+                    emit(Resource.Error(errorMsg))
                 }
             } catch (e: Exception) {
-                emit(Resource.Error("${e.message}"))
+                emit(Resource.Error("Some error occured"))
             }
         }
     }

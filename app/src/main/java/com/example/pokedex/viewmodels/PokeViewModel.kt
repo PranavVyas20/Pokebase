@@ -224,7 +224,7 @@ class PokeViewModel @Inject constructor(
                             }
                         }
                         is Resource.Error -> {
-                            Log.d("getPokemon", "error")
+                            Log.d("getPokemon", apiResponse.message.toString())
 
                             if (!getPokemonDetails) {
                                 _pokemonState.value = UIState(

@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
@@ -54,11 +55,9 @@ import kotlinx.coroutines.delay
 fun PokemonDetailScreen(
     pokeViewModel: PokeViewModel, navController: NavController, pokemonName: String?
 ) {
-    // Handle room saved poke seperately
-    // First check if it exist or not
     val detailPokeState = pokeViewModel.detailPokemonState.value
 
-    BackHandler() {
+    BackHandler {
         navController.popBackStack()
         pokeViewModel.returnedBackFromPokeDetail.value = true
     }
@@ -67,7 +66,19 @@ fun PokemonDetailScreen(
         pokeViewModel.getPokemonDetails(pokemonName!!)
     }
 
-    if (detailPokeState.data != null) {
+    if (!detailPokeState.isLoading && !detailPokeState.error.isNullOrBlank()) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = "Some error occured")
+                Button(onClick = { pokeViewModel.getPokemon(pokemonName!!, true) }) {
+                    Text(text = "Retry")
+                }
+            }
+        }
+    } else if(detailPokeState.data != null) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -93,6 +104,7 @@ fun PokemonDetailScreen(
             )
         }
     }
+
 }
 
 @Composable
