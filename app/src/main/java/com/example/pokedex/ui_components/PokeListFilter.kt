@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pokedex.R
 import com.example.pokedex.ui.theme.*
+import com.example.pokedex.util.Constants
 
 private data class PokeListFilter(
     val type: String, val bg: Color, val icon: Int
@@ -48,7 +49,7 @@ private val pokefilters: List<PokeListFilter> = listOf(
 fun PokeListFilterCard(
     changeVisibility: () -> Unit,
     onFilterClick: (String) -> Unit,
-    resetUIState: (Boolean) -> Unit,
+    resetUIState: (String) -> Unit,
     clearSearchBox: () -> Unit
 
 ) {
@@ -84,7 +85,7 @@ fun PokeListFilterCard(
                         onClick = {
                             //rest the filter and use the already saved list(if present)
                             changeVisibility()
-                            resetUIState(true)
+                            resetUIState(Constants.LastResponseType.NORMAL_POKE_LIST)
                             clearSearchBox()
                         }) {
                         Icon(

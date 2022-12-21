@@ -35,10 +35,10 @@ fun PokeListItem(
     pokemonFormattedNumber: String,
     pokemonNumber: Int,
     pokemonImageUrl: String,
-    calculateDominantColor: (drawable: Drawable, onFinish: (Color) -> Unit) -> Unit,
-    getDominantColorAndDrawable: (Color?, Drawable?) -> Unit,
+    calculateDominantColor: ((drawable: Drawable, onFinish: (Color) -> Unit) -> Unit?)?,
+    getDominantColorAndDrawable: ((Color?, Drawable?) -> Unit)?,
     getPokemonDetails: (String, Boolean) -> Unit,
-    navController: NavController
+    navController: NavController?
 ) {
     val showShimmer = remember { mutableStateOf(true) }
     val pokemonDominantColor = remember { mutableStateOf(Color.White)}
@@ -54,9 +54,11 @@ fun PokeListItem(
             .clickable {
                 // Make api call
                 if (!showShimmer.value) {
-                    getPokemonDetails(pokemonName.replaceFirstChar { it.lowercaseChar() }, true)
-                    getDominantColorAndDrawable(pokemonDominantColor.value,loadedPokemonDrawable.value)
-                    navController.navigate(Screen.PokemonDetailScreen.route)
+//                    getPokemonDetails(pokemonName.replaceFirstChar { it.lowercaseChar() }, true)
+                    if(getDominantColorAndDrawable != null) {
+                        getDominantColorAndDrawable(pokemonDominantColor.value,loadedPokemonDrawable.value)
+                    }
+                    navController?.navigate(Screen.PokemonDetailScreen.route + "/$pokemonName")
                 }
             }
             .placeholder(
@@ -76,11 +78,12 @@ fun PokeListItem(
                     .data(pokemonImageUrl)
                     .build(),
                 onSuccess = {
-                    calculateDominantColor(it.result.drawable) { color ->
-                        pokemonDominantColor.value = color
-                        loadedPokemonDrawable.value = it.result.drawable
+                    if(calculateDominantColor != null) {
+                        calculateDominantColor(it.result.drawable) { color ->
+                            pokemonDominantColor.value = color
+                            loadedPokemonDrawable.value = it.result.drawable
+                        }
                     }
-                    println(it.result.drawable.toString())
                     showShimmer.value = false
                 },
                 onLoading = {
@@ -92,7 +95,7 @@ fun PokeListItem(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = pokemonName,
+                    text = pokemonName.replaceFirstChar { it.uppercase() },
                     fontFamily = FontFamily(Font(R.font.tt_interfaces_bold)),
                     color = Color(0xFF442a60)
                 )

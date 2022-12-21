@@ -1,16 +1,21 @@
 package com.example.pokedex.ui_components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.pokedex.R
+import com.example.pokedex.navigation.Screen
 import com.example.pokedex.ui.theme.CustomPurpleBold
 import com.example.pokedex.ui.theme.CustomPurpleLight
 
@@ -20,16 +25,27 @@ fun PokeListHeader(
     onSearchPressed: (query: String, Boolean) -> Unit,
     onClickDismissed: () -> Unit,
     clearSearchBox: () -> Unit,
+    navController: NavController,
     updateSearchBox: (String) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(10.dp)
     ) {
-        Text(
-            text = "Pokédex", color = CustomPurpleBold,
-            fontFamily = FontFamily(Font(R.font.tt_interfaces_bold)),
-            fontSize = 35.sp,
-        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                text = "Pokédex", color = CustomPurpleBold,
+                fontFamily = FontFamily(Font(R.font.tt_interfaces_bold)),
+                fontSize = 35.sp,
+            )
+            IconButton(onClick = { navController.navigate(Screen.FavPokemonSceen.route) }) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "",
+                    tint = Color.Black
+                )
+            }
+        }
+
         Text(
             text = "Search for a Pokemon by name",
             color = CustomPurpleLight,

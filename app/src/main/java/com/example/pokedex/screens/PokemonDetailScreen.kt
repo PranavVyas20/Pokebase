@@ -1,6 +1,9 @@
 package com.example.pokedex.screens
 
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -36,39 +39,56 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pokedex.R
+import com.example.pokedex.models.LocalPokemon
 import com.example.pokedex.models.PokemonResonse
 import com.example.pokedex.models.PokemonStatsResponse
 import com.example.pokedex.ui.theme.CustomPurpleBold
 import com.example.pokedex.ui.theme.CustomPurpleLight
 import com.example.pokedex.ui.theme.CustomPurpleSemiBold
 import com.example.pokedex.viewmodels.PokeViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 
 @Composable
 fun PokemonDetailScreen(
-    pokeViewModel: PokeViewModel, navController: NavController
+    pokeViewModel: PokeViewModel, navController: NavController, pokemonName: String?
 ) {
+    // Handle room saved poke seperately
+    // First check if it exist or not
+    val detailPokeState = pokeViewModel.detailPokemonState.value
+
     BackHandler() {
         navController.popBackStack()
         pokeViewModel.returnedBackFromPokeDetail.value = true
     }
-    val searchPokemonState = pokeViewModel.searchedPokemonState.value
 
-    if (!searchPokemonState.isLoading && searchPokemonState.data != null) {
+    LaunchedEffect(key1 = Unit) {
+        pokeViewModel.getPokemonDetails(pokemonName!!)
+    }
+
+    if (detailPokeState.data != null) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(pokeViewModel.dominantColor ?: Color.Red)
         ) {
+            val pokeImage: Bitmap = if(detailPokeState.data.pokemonImage == null){
+                (pokeViewModel.loadedPokemonImage as BitmapDrawable).bitmap
+            } else {
+                detailPokeState.data.pokemonImage
+            }!!
             PokemonDetailTop(
-                searchPokemonState.data,
+                pokemonDetails = detailPokeState.data,
                 modifier = Modifier.weight(1f),
-                pokeViewModel.loadedPokemonImage as Drawable,
-                pokeViewModel::getPokemonNumberFormatted
+                PokemonDrawable = pokeImage,
+                savePokemon = pokeViewModel::savePokemon,
+                getPokeIdFormatted = pokeViewModel::getPokemonNumberFormatted
             )
             PokemonDetailBottom(
-                pokemonDetails = searchPokemonState.data,
+                pokemonDetails = detailPokeState.data,
                 modifier = Modifier.weight(1.5f),
-                searchPokemonState.data.pokemonStats,
+                detailPokeState.data.pokemonStats,
                 pokeViewModel.dominantColor
             )
         }
@@ -79,7 +99,8 @@ fun PokemonDetailScreen(
 fun PokemonDetailTop(
     pokemonDetails: PokemonResonse,
     modifier: Modifier,
-    loadedPokemonDrawable: Drawable?,
+    savePokemon: (PokemonResonse, Bitmap) -> Unit,
+    PokemonDrawable: Bitmap?,
     getPokeIdFormatted: (Int) -> String
 ) {
     Box(modifier = modifier) {
@@ -97,7 +118,9 @@ fun PokemonDetailTop(
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = {
+                        savePokemon(pokemonDetails, PokemonDrawable!!)
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Favorite,
                             contentDescription = "",
@@ -112,15 +135,17 @@ fun PokemonDetailTop(
                     )
                 }
             }
-            AsyncImage(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .scale(1.3f),
-                model = ImageRequest.Builder(LocalContext.current).data(loadedPokemonDrawable)
-                    .build(),
+            PokemonDrawable?.let {
+                AsyncImage(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .scale(1.3f),
+                    model = ImageRequest.Builder(LocalContext.current).data(PokemonDrawable)
+                        .build(),
 
-                contentDescription = "",
-            )
+                    contentDescription = "",
+                )
+            }
             Spacer(modifier = Modifier.height(10.dp))
             TextWithShadow(
                 text = pokemonDetails.pokemonName.replaceFirstChar { it.uppercase() },

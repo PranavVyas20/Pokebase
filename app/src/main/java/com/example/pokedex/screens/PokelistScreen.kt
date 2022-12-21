@@ -42,41 +42,59 @@ fun LazyGridScope.header(
 fun PokeListScreen(pokeViewModel: PokeViewModel, navController: NavController) {
     val filterScreenVisibility = pokeViewModel.filterScreenVisibility
     val blackScreenVisibility = pokeViewModel.blackScreenVisibility
-    val pokemonsState = pokeViewModel.pokemonsState.value
+    val pokemonsState = pokeViewModel.pokemonState.value
     val searchBoxText = pokeViewModel.searchBoxText
+    val context = LocalContext.current
 
     LaunchedEffect(key1 = Unit) {
-        Log.d("launchedEffect", "runned: ${pokeViewModel.lastResponseType}")
         if (!pokeViewModel.returnedBackFromPokeDetail.value) {
             pokeViewModel.getPokemonsPaginated()
         } else {
             pokeViewModel.returnedBackFromPokeDetail.value = true
         }
-    }
-    val activity = LocalContext.current as? Activity
 
+//        if (!pokeViewModel.returnedBackFromPokeDetail.value) {
+//            pokeViewModel.getPokemonsPaginated()
+//            pokeViewModel.getSavedPokemons()
+//            pokeViewModel.lastResponseType = Constants.LastResponseType.NORMAL_POKE_LIST
+//
+//        } else {
+//            pokeViewModel.returnedBackFromPokeDetail.value = false
+//            pokeViewModel.lastResponseType = Constants.LastResponseType.SEARCHED_POKE_LIST
+//        }
+
+    }
+    val activity = context as? Activity
     BackHandler() {
-        if (pokeViewModel.lastResponseType == Constants.LastResponseType.SEARCHED_POKE_LIST || pokeViewModel.lastResponseType == Constants.LastResponseType.POKE_DETAIL) {
-            pokeViewModel.resetUIState(Constants.LastResponseType.NORMAL_POKE_LIST)
-            pokeViewModel.clearSearchBox()
-        } else {
+        if (pokemonsState.data!!.size > 1) {
             activity?.finish()
+        } else {
+            Log.d("lastListType", pokeViewModel.lastListType)
+            // Currently on searched poke screen
+            if (pokeViewModel.lastListType == Constants.LastResponseType.NORMAL_POKE_LIST) {
+                pokeViewModel.resetUIState(Constants.LastResponseType.NORMAL_POKE_LIST)
+            } else if (pokeViewModel.lastListType == Constants.LastResponseType.FILTERED_POKE_LIST) {
+                pokeViewModel.resetUIState(Constants.LastResponseType.FILTERED_POKE_LIST)
+            }
+            pokeViewModel.clearSearchBox()
         }
     }
+
+    // Check for null data here and show error screen
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(start = 15.dp, end = 15.dp)) {
             PokeList(
-                searchBoxText,
-                pokemonsState.data!!,
-                pokeViewModel::calcDominantColor,
-                pokeViewModel::getPokemonsPaginated,
-                pokeViewModel::getPokemon,
-                pokeViewModel::resetUIState,
-                pokeViewModel::clearSearchBox,
-                pokeViewModel::updateSearchBox,
-                pokeViewModel::getDominantColorAndDrawable,
-                pokeViewModel::getPokemon,
-                navController
+                searchBarText = searchBoxText,
+                pokemonListEntries = pokemonsState.data!!,
+                calculateDominantColor = pokeViewModel::calcDominantColor,
+                getPokemonsPaginated = pokeViewModel::getPokemonsPaginated,
+                onSearchPressed = pokeViewModel::getPokemon,
+                onClickDismissed = pokeViewModel::resetUIState,
+                clearSearchBox = pokeViewModel::clearSearchBox,
+                updateSearchBox = pokeViewModel::updateSearchBox,
+                getDominantColorAndDrawable = pokeViewModel::getDominantColorAndDrawable,
+                getPokemonDetails = pokeViewModel::getPokemon,
+                navController = navController
             )
         }
 

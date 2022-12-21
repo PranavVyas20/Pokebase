@@ -10,5 +10,6 @@ object Constants {
         const val FILTERED_POKE_LIST = "filtered_poke_list"
         const val SEARCHED_POKE_LIST = "searched_poke_list"
         const val POKE_DETAIL = "poke_detail"
+        const val SAVED_POKE_LIST  = "saved_poke_list"
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import com.example.pokedex.models.PokeListEntry
 import com.example.pokedex.screens.header
+import com.example.pokedex.util.Constants
 
 @Composable
 fun PokeList(
@@ -26,14 +27,16 @@ fun PokeList(
     getPokemonDetails: (String, Boolean) -> Unit,
     navController: NavController
 ) {
+    Log.d("pokemonsPaginatedEol", pokemonListEntries.toString())
     LazyVerticalGrid(columns = GridCells.Fixed(2)) {
         header {
             PokeListHeader(
-                searchBarText,
-                onSearchPressed,
-                onClickDismissed,
-                clearSearchBox,
-                updateSearchBox
+                searchBoxText = searchBarText,
+                onSearchPressed = onSearchPressed,
+                onClickDismissed = onClickDismissed,
+                navController = navController,
+                clearSearchBox = clearSearchBox,
+                updateSearchBox = updateSearchBox
             )
         }
         items(pokemonListEntries) { pokeListEntry ->
@@ -50,7 +53,7 @@ fun PokeList(
         }
         item {
             LaunchedEffect(true) {
-                if (pokemonListEntries.size > 1) {
+                if (pokemonListEntries.size >= Constants.PAGE_SIZE) {
                     Log.d("pokemonsPaginatedEol", "offsetidk")
                     getPokemonsPaginated()
                 }
