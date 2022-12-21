@@ -82,7 +82,7 @@ fun PokemonDetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(pokeViewModel.dominantColor ?: Color.Red)
+                .background(pokeViewModel.dominantColor ?: Color(0xFF75acb7))
         ) {
             val pokeImage: Bitmap = if(detailPokeState.data.pokemonImage == null){
                 (pokeViewModel.loadedPokemonImage as BitmapDrawable).bitmap
@@ -90,6 +90,7 @@ fun PokemonDetailScreen(
                 detailPokeState.data.pokemonImage
             }!!
             PokemonDetailTop(
+                navController = navController,
                 pokemonDetails = detailPokeState.data,
                 modifier = Modifier.weight(1f),
                 PokemonDrawable = pokeImage,
@@ -109,6 +110,7 @@ fun PokemonDetailScreen(
 
 @Composable
 fun PokemonDetailTop(
+    navController: NavController,
     pokemonDetails: PokemonResonse,
     modifier: Modifier,
     savePokemon: (PokemonResonse, Bitmap) -> Unit,
@@ -122,7 +124,7 @@ fun PokemonDetailTop(
             Row(
                 modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(onClick = { }) {
+                IconButton(onClick = {navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.Default.ArrowBackIos,
                         contentDescription = "",
@@ -133,11 +135,20 @@ fun PokemonDetailTop(
                     IconButton(onClick = {
                         savePokemon(pokemonDetails, PokemonDrawable!!)
                     }) {
-                        Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = "",
-                            tint = Color.White
-                        )
+                        Box() {
+                            Icon(
+                                modifier = Modifier.offset(2.dp, 2.dp),
+                                imageVector = Icons.Default.Favorite,
+                                contentDescription = "",
+                                tint = Color.Black
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Favorite,
+                                contentDescription = "",
+                                tint = Color.White
+                            )
+                        }
+
                     }
                     TextWithShadow(
                         text = getPokeIdFormatted(pokemonDetails.pokemonId),
@@ -231,7 +242,7 @@ fun PokemonDetailBottom(
                             statName = it.stat.name,
                             statValue = it.statValue.toString(),
                             statMaxValue = maxBaseStat,
-                            statColor = dominantColor?.copy(alpha = 0.6f) ?: Color.Green,
+                            statColor = dominantColor?.copy(alpha = 0.6f) ?: Color(0xFF75acb7),
                         )
                     }
 

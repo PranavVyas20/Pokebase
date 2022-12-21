@@ -5,7 +5,9 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +41,7 @@ fun PokeListHeader(
             )
             IconButton(onClick = { navController.navigate(Screen.FavPokemonSceen.route) }) {
                 Icon(
-                    imageVector = Icons.Default.Favorite,
+                    imageVector = Icons.Outlined.Bookmarks,
                     contentDescription = "",
                     tint = Color.Black
                 )

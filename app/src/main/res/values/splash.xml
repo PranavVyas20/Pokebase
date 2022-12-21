@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Pokedex.MySplash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FFFFFF</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/poke_splash_icon</item>
+        <item name="android:text">@string/app_name</item>
+        <item name="postSplashScreenTheme">@style/Theme.Pokedex</item>
+    </style>
+</resources>

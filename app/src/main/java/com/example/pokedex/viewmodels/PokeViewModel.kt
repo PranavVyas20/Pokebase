@@ -4,6 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.Log
+import xdroid.toaster.Toaster.toast
+import xdroid.toaster.Toaster.toastLong
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -68,6 +71,7 @@ class PokeViewModel @Inject constructor(
 //    var lastResponseType = Constants.LastResponseType.NORMAL_POKE_LIST
 
     var dominantColor by mutableStateOf<Color?>(null)
+    var dominantColorInt by mutableStateOf<Int?>(null)
     var loadedPokemonImage by mutableStateOf<Drawable?>(null)
 
     private var _filterScreenVisibility by mutableStateOf(false)
@@ -324,20 +328,28 @@ class PokeViewModel @Inject constructor(
 
     fun savePokemon(pokemon: PokemonResonse, pokeDrawable: Bitmap) {
         viewModelScope.launch {
-            pokemon.pokemonImage = pokeDrawable
-            pokeRepository.savePokemon(pokemon).onEach {
-                when (it) {
-                    is Resource.Success -> {
-                        Log.d("pokeDb", "saved succesfully")
-                    }
-                    is Resource.Error -> {
-                        Log.d("pokeDb", it.message.toString())
-                    }
-                    is Resource.Loading -> {
+            val deferred = viewModelScope.async {
+                pokeRepository.getPokemonFromDb(pokemon.pokemonName)
+            }
+            if (deferred.await() != null) {
+//                Toast.makeText(this@PokeViewModel, "You have already captured this pokemon", Toast.LENGTH_SHORT)
+                deletePokemon(pokemon)
+            } else {
+                pokemon.pokemonImage = pokeDrawable
+                pokeRepository.savePokemon(pokemon).onEach {
+                    when (it) {
+                        is Resource.Success -> {
+                            Log.d("pokeDb", "saved succesfully")
+                        }
+                        is Resource.Error -> {
+                            Log.d("pokeDb", it.message.toString())
+                        }
+                        is Resource.Loading -> {
 
+                        }
                     }
-                }
-            }.launchIn(viewModelScope)
+                }.launchIn(viewModelScope)
+            }
         }
     }
 
@@ -346,6 +358,7 @@ class PokeViewModel @Inject constructor(
             pokeRepository.deletePokemon(pokemon).onEach {
                 when (it) {
                     is Resource.Success -> {
+                        toast("Deleted from saved")
                         Log.d("pokeDb", "saved succesfully")
                     }
                     is Resource.Error -> {
@@ -414,7 +427,6 @@ class PokeViewModel @Inject constructor(
             Log.d("getPokeDetails", "else")
             getPokemon(pokemonName, true)
         }
-
     }
 
     fun calcDominantColor(drawable: Drawable, onFinish: (Color) -> Unit) {
