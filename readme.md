@@ -37,8 +37,8 @@ Pokedex is an android app made with Jetpack compose and kotlin that fetches poke
      <td>Detail screen</td>
   </tr>
   <tr>
-    <td><img src="ss/homescreen.png" width=270 height=480></td>
-    <td><img src="ss/detail_screen.png" width=270 height=480></td> 
+    <td><img src="ss/homescreen.png" width=270 height=510></td>
+    <td><img src="ss/detail_screen.png" width=270 height=510></td> 
   </tr>
  </table>
 
@@ -48,7 +48,7 @@ Pokedex is an android app made with Jetpack compose and kotlin that fetches poke
      <td>Search pokemon</td>
   </tr>
   <tr>
-    <td><img src="ss/homescreen_filter.png" width=270 height=480></td>
-    <td><img src="ss/homescreen_search.png" width=270 height=480></td>
+    <td><img src="ss/homescreen_filter.png" width=270 height=510></td>
+    <td><img src="ss/homescreen_search.png" width=270 height=510></td>
   </tr>
  </table>
