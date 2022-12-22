@@ -1,8 +1,8 @@
 package com.example.pokedex.di
 
 import android.content.Context
-import com.example.pokedex.db.PokeDao
-import com.example.pokedex.db.PokemonDatabase
+import com.example.pokedex.data.db.PokeDao
+import com.example.pokedex.data.db.PokemonDatabase
 import com.example.pokedex.remote.PokeAPi
 import com.example.pokedex.repository.PokeRepository
 import com.example.pokedex.util.Constants

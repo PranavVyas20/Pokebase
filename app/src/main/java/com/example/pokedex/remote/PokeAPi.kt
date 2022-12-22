@@ -1,8 +1,8 @@
 package com.example.pokedex.remote
 
-import com.example.pokedex.models.PokemonListResponse
-import com.example.pokedex.models.PokemonResonse
-import com.example.pokedex.models.PokemonTypeListResponse
+import com.example.pokedex.remote.responses.PokemonListResponse
+import com.example.pokedex.remote.responses.PokemonResonse
+import com.example.pokedex.remote.responses.PokemonTypeListResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path

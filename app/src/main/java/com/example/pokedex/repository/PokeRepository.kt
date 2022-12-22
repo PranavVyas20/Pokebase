@@ -1,16 +1,13 @@
 package com.example.pokedex.repository
 
-import android.util.Log
-import com.example.pokedex.db.PokeDao
-import com.example.pokedex.models.LocalPokemon
-import com.example.pokedex.models.PokemonListResponse
-import com.example.pokedex.models.PokemonResonse
-import com.example.pokedex.models.PokemonTypeListResponse
+import com.example.pokedex.data.db.PokeDao
+import com.example.pokedex.remote.responses.PokemonListResponse
+import com.example.pokedex.remote.responses.PokemonResonse
+import com.example.pokedex.remote.responses.PokemonTypeListResponse
 import com.example.pokedex.remote.PokeAPi
 import com.example.pokedex.util.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import xdroid.toaster.Toaster
 
 class PokeRepository(private val pokeApi: PokeAPi, private val pokeDao: PokeDao) {
 
@@ -68,19 +65,13 @@ class PokeRepository(private val pokeApi: PokeAPi, private val pokeDao: PokeDao)
     }
 
     suspend fun savePokemon(pokemon: PokemonResonse): Flow<Resource<Boolean>> {
-        Log.d("pokeDb","repo")
 
         return flow {
-            Log.d("pokeDb","flow")
 
             try {
                 pokeDao.savePokemon(pokemon)
                 emit(Resource.Success(data = true))
-                Toaster.toast("Pokemon captured!")
-                Log.d("pokeDb","saved succesfully")
-
             } catch (e: Exception) {
-                Log.d("pokeDb","saved succesfully")
                 emit(Resource.Error(data = false, message = "${e.message}"))
             }
         }

@@ -6,10 +6,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.pokedex.screens.FavPokemonScreen
-import com.example.pokedex.screens.PokeListScreen
-import com.example.pokedex.screens.PokemonDetailScreen
-import com.example.pokedex.viewmodels.PokeViewModel
+import com.example.pokedex.view.screens.FavPokemonScreen
+import com.example.pokedex.view.screens.PokeListScreen
+import com.example.pokedex.view.screens.PokemonDetailScreen
+import com.example.pokedex.viewmodel.PokeViewModel
 
 @Composable
 fun Navigation(pokeViewModel: PokeViewModel) {

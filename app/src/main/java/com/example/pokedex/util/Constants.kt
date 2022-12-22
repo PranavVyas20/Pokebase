@@ -12,4 +12,10 @@ object Constants {
         const val POKE_DETAIL = "poke_detail"
         const val SAVED_POKE_LIST  = "saved_poke_list"
     }
+    object ToastMessage{
+        const val SAVE_ERROR = "Some error occurred, couldn't save"
+        const val SAVE_SUCCESS = "Pokemon captured!"
+        const val DELETE_ERROR = "Some error occurred, couldn't delete"
+        const val DELETE_SUCCESS = "Deleted from saved"
+    }
 }
