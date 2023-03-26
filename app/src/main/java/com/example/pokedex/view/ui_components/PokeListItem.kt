@@ -34,6 +34,7 @@ import com.google.accompanist.placeholder.shimmer
 @Composable
 fun PokeListItem(
     pokemonName: String,
+    onPokeListItemClick: (() -> Unit)? = null,
     pokemonFormattedNumber: String,
     pokemonImageUrl: String,
     calculateDominantColor: ((drawable: Drawable, onFinish: (Color) -> Unit) -> Unit?)?,
@@ -54,6 +55,9 @@ fun PokeListItem(
         modifier = Modifier
             .padding(8.dp)
             .clickable {
+                onPokeListItemClick?.let {
+                    it()
+                }
                 if (!showShimmer.value) {
                     if (getDominantColorAndDrawable != null) {
                         getDominantColorAndDrawable(

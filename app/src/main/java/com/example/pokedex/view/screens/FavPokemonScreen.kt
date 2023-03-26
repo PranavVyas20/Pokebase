@@ -2,9 +2,7 @@ package com.example.pokedex.view.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +38,13 @@ fun FavPokemonScreen(pokeViewModel: PokeViewModel, navController: NavController)
                 Text(text = "You haven't captured any pokemons yet!")
             }
         } else {
-            LazyVerticalGrid(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp), columns = GridCells.Fixed(2)) {
+            LazyVerticalGrid(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 15.dp),
+                columns = GridCells.Fixed(2),
+                state = rememberLazyGridState(initialFirstVisibleItemIndex = pokeViewModel.savedPokemonListItemIdx)
+                ) {
                 header {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
@@ -50,16 +54,27 @@ fun FavPokemonScreen(pokeViewModel: PokeViewModel, navController: NavController)
                         )
                     }
                 }
-                items(savedPokeState.data) {
+                itemsIndexed(savedPokeState.data) { idx, item ->
                     PokeListItem(
-                        pokemonName = it.pokemonName,
-                        pokemonFormattedNumber = it.formattedNumber,
-                        pokemonImageUrl = it.imageUrl,
+                        pokemonName = item.pokemonName,
+                        onPokeListItemClick = {pokeViewModel.savedPokemonListItemIdx = idx},
+                        pokemonFormattedNumber = item.formattedNumber,
+                        pokemonImageUrl = item.imageUrl,
                         calculateDominantColor = null,
                         getDominantColorAndDrawable = null,
                         navController = navController
                     )
                 }
+//                items(savedPokeState.data) {
+//                    PokeListItem(
+//                        pokemonName = it.pokemonName,
+//                        pokemonFormattedNumber = it.formattedNumber,
+//                        pokemonImageUrl = it.imageUrl,
+//                        calculateDominantColor = null,
+//                        getDominantColorAndDrawable = null,
+//                        navController = navController
+//                    )
+//                }
             }
         }
     }

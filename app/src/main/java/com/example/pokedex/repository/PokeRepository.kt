@@ -16,7 +16,7 @@ class PokeRepository(private val pokeApi: PokeAPi, private val pokeDao: PokeDao)
             emit(Resource.Loading())
             try {
                 val response = pokeApi.getPokemons(limit, offset)
-                if (response.code() == 200) {
+                if (response.isSuccessful && response.body() != null) {
                     emit(Resource.Success(response.body()!!))
                 } else {
                     emit(Resource.Error("Some error occured"))

@@ -3,6 +3,7 @@ package com.example.pokedex.viewmodel
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,11 +18,9 @@ import com.example.pokedex.util.Constants
 import com.example.pokedex.util.Constants.PAGE_SIZE
 import com.example.pokedex.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import xdroid.toaster.Toaster.toast
 import javax.inject.Inject
 
@@ -60,6 +59,8 @@ class PokeViewModel @Inject constructor(
     var returnedBackFromPokeDetail = mutableStateOf(false)
 
     var lastListType = Constants.LastResponseType.NORMAL_POKE_LIST
+
+    var savedPokemonListItemIdx = 0
 
     private var searchedFromState = Constants.LastResponseType.NORMAL_POKE_LIST
 
@@ -108,7 +109,6 @@ class PokeViewModel @Inject constructor(
                                 normalPokemonList.add(pokeListEntry)
                             }
 
-
                             _pokemonState.value = UIState(
                                 false,
                                 data = normalPokemonList.toList(),
@@ -141,6 +141,8 @@ class PokeViewModel @Inject constructor(
     fun getPokemon(name: String, getPokemonDetails: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             pokeRepository.getPokemon(name).onEach { apiResponse ->
+                delay(10000)
+                Log.d("threadUsed", Thread.currentThread().name)
                 when (apiResponse) {
                     is Resource.Success -> {
 
@@ -446,4 +448,17 @@ class PokeViewModel @Inject constructor(
         loadedPokemonImage = drawable
     }
 
+    fun two() {
+        getUserByIdFromNetwork() {
+            
+        }
+    }
+    private fun getUserByIdFromNetwork(onUserReady: (Unit) -> Unit) {
+        viewModelScope.launch {
+            val savedLatLong: Deferred<Unit> = async {
+                delay(1000)
+            }
+            onUserReady(savedLatLong.await())
+        }
+    }
 }
