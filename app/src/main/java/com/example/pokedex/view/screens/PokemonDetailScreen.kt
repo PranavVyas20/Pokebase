@@ -11,10 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.BarChart
@@ -38,7 +35,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pokedex.R
-import com.example.pokedex.remote.responses.PokemonResonse
+import com.example.pokedex.data.models.Pokemon
 import com.example.pokedex.remote.responses.PokemonStatsResponse
 import com.example.pokedex.ui.theme.CustomPurpleBold
 import com.example.pokedex.ui.theme.CustomPurpleLight
@@ -60,7 +57,12 @@ fun PokemonDetailScreen(
         pokeViewModel.getPokemonDetails(pokemonName!!)
     }
 
-    if (!detailPokeState.isLoading && !detailPokeState.error.isNullOrBlank()) {
+    if(detailPokeState.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    }
+    else if (!detailPokeState.error.isNullOrBlank()) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier.align(Alignment.Center),
@@ -72,42 +74,42 @@ fun PokemonDetailScreen(
                 }
             }
         }
-    } else if(detailPokeState.data != null) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(pokeViewModel.dominantColor ?: Color(0xFF75acb7))
-        ) {
-            val pokeImage: Bitmap = if(detailPokeState.data.pokemonImage == null){
-                (pokeViewModel.loadedPokemonImage as BitmapDrawable).bitmap
-            } else {
-                detailPokeState.data.pokemonImage
-            }!!
-            PokemonDetailTop(
-                navController = navController,
-                pokemonDetails = detailPokeState.data,
-                modifier = Modifier.weight(1f),
-                PokemonDrawable = pokeImage,
-                savePokemon = pokeViewModel::savePokemon,
-                getPokeIdFormatted = pokeViewModel::getPokemonNumberFormatted
-            )
-            PokemonDetailBottom(
-                pokemonDetails = detailPokeState.data,
-                modifier = Modifier.weight(1.5f),
-                detailPokeState.data.pokemonStats,
-                pokeViewModel.dominantColor
-            )
-        }
+    } else if (detailPokeState.data != null) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(pokeViewModel.dominantColor ?: Color(0xFF75acb7))
+    ) {
+        val pokeImage: Bitmap = if (detailPokeState.data.pokemonImage == null) {
+            (pokeViewModel.loadedPokemonImage as BitmapDrawable).bitmap
+        } else {
+            detailPokeState.data.pokemonImage
+        }!!
+        PokemonDetailTop(
+            navController = navController,
+            pokemonDetails = detailPokeState.data,
+            modifier = Modifier.weight(1f),
+            PokemonDrawable = pokeImage,
+            savePokemon = pokeViewModel::savePokemon,
+            getPokeIdFormatted = pokeViewModel::getPokemonNumberFormatted
+        )
+        PokemonDetailBottom(
+            pokemonDetails = detailPokeState.data,
+            modifier = Modifier.weight(1.5f),
+            detailPokeState.data.pokemonStats,
+            pokeViewModel.dominantColor
+        )
     }
+}
 
 }
 
 @Composable
 fun PokemonDetailTop(
     navController: NavController,
-    pokemonDetails: PokemonResonse,
+    pokemonDetails: Pokemon,
     modifier: Modifier,
-    savePokemon: (PokemonResonse, Bitmap) -> Unit,
+    savePokemon: (Pokemon, Bitmap) -> Unit,
     PokemonDrawable: Bitmap?,
     getPokeIdFormatted: (Int) -> String
 ) {
@@ -118,7 +120,7 @@ fun PokemonDetailTop(
             Row(
                 modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(onClick = {navController.popBackStack() }) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.Default.ArrowBackIos,
                         contentDescription = "",
@@ -195,7 +197,7 @@ fun PokemonDetailTop(
 
 @Composable
 fun PokemonDetailBottom(
-    pokemonDetails: PokemonResonse,
+    pokemonDetails: Pokemon,
     modifier: Modifier,
     pokemonStats: List<PokemonStatsResponse>,
     dominantColor: Color?

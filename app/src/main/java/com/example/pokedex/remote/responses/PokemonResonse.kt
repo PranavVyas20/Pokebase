@@ -1,28 +1,41 @@
 package com.example.pokedex.remote.responses
 
 import android.graphics.Bitmap
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import com.example.pokedex.data.models.PokeListEntry
+import com.example.pokedex.data.models.Pokemon
 import com.google.gson.annotations.SerializedName
 
-@Entity(tableName = "pokemon_table")
-data class PokemonResonse(
+data class PokemonResponse(
     @SerializedName("name") val pokemonName: String,
 
-    @PrimaryKey
     @SerializedName("id") val pokemonId: Int,
 
-    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
-    var pokemonImage:Bitmap?,
+    var pokemonImage: Bitmap?,
 
     @SerializedName("weight") val pokemonWeight: Int,
 
     @SerializedName("height") val pokemonHeight: Int,
 
-    @ColumnInfo(name = "pokemonTypes")
     @SerializedName("types") val pokemonTypes: List<PokemonTypesListPropertyResponse>,
 
-    @ColumnInfo(name = "pokemonStats")
     @SerializedName("stats") val pokemonStats: List<PokemonStatsResponse>
 )
+
+internal fun PokemonResponse.toPokeListEntry(): PokeListEntry =
+    PokeListEntry(
+        pokemonName = pokemonName,
+        imageUrl = pokemonName,
+        formattedNumber = getPokemonNumberFormatted(pokemonId),
+        number = pokemonId
+    )
+
+internal fun PokemonResponse.toPokemon(): Pokemon =
+    Pokemon(
+        pokemonName = pokemonName,
+        pokemonId = pokemonId,
+        pokemonImage = pokemonImage,
+        pokemonWeight = pokemonWeight,
+        pokemonHeight = pokemonHeight,
+        pokemonTypes = pokemonTypes,
+        pokemonStats = pokemonStats
+    )

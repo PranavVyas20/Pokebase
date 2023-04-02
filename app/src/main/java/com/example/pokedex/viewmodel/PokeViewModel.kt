@@ -3,7 +3,6 @@ package com.example.pokedex.viewmodel
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,7 +11,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
 import com.example.pokedex.data.models.PokeListEntry
-import com.example.pokedex.remote.responses.PokemonResonse
+import com.example.pokedex.data.models.Pokemon
+import com.example.pokedex.data.models.toPokemonEntity
+import com.example.pokedex.remote.responses.toPokeListEntries
+import com.example.pokedex.remote.responses.toPokeListEntry
+import com.example.pokedex.remote.responses.toPokemon
 import com.example.pokedex.repository.PokeRepository
 import com.example.pokedex.util.Constants
 import com.example.pokedex.util.Constants.PAGE_SIZE
@@ -79,38 +82,19 @@ class PokeViewModel @Inject constructor(
     private var currentPage = 0
 
     private val _detailPokemonState =
-        mutableStateOf<UIState<PokemonResonse>>(UIState(currentScreenState = Constants.LastResponseType.POKE_DETAIL))
+        mutableStateOf<UIState<Pokemon>>(UIState(currentScreenState = Constants.LastResponseType.POKE_DETAIL))
     val detailPokemonState get() = _detailPokemonState
 
     fun getPokemonsPaginated() {
         _filterScreenVisibility = false
         viewModelScope.launch(Dispatchers.IO) {
             pokeRepository.getPokemonsPaginated(PAGE_SIZE, currentPage * PAGE_SIZE)
-                .onEach { apiResponse ->
-                    when (apiResponse) {
+                .collect { pokemonsApiResponse ->
+                    when (pokemonsApiResponse) {
                         is Resource.Success -> {
-
-                            apiResponse.data!!.results.forEach { pokeListResultItem ->
-
-                                val pokeNumber = if (pokeListResultItem.url.endsWith("/")) {
-                                    pokeListResultItem.url.dropLast(1)
-                                        .takeLastWhile { it.isDigit() }
-                                } else {
-                                    pokeListResultItem.url.takeLastWhile { it.isDigit() }
-                                }
-                                val pokeImageUrl = Constants.BASE_ICON_URL + pokeNumber + ".png"
-
-                                val pokeListEntry = PokeListEntry(
-                                    pokeListResultItem.name,
-                                    pokeImageUrl,
-                                    getPokemonNumberFormatted(pokeNumber.toInt()),
-                                    number = pokeNumber.toInt()
-                                )
-                                normalPokemonList.add(pokeListEntry)
-                            }
-
+                            normalPokemonList.addAll(pokemonsApiResponse.data?.results!!.toPokeListEntries())
                             _pokemonState.value = UIState(
-                                false,
+                                isLoading = false,
                                 data = normalPokemonList.toList(),
                                 currentScreenState = Constants.LastResponseType.NORMAL_POKE_LIST
                             )
@@ -119,7 +103,7 @@ class PokeViewModel @Inject constructor(
                         is Resource.Error -> {
                             _pokemonState.value = UIState(
                                 isLoading = false,
-                                error = apiResponse.message,
+                                error = pokemonsApiResponse.message,
                                 currentScreenState = Constants.LastResponseType.NORMAL_POKE_LIST
                             )
                         }
@@ -134,28 +118,15 @@ class PokeViewModel @Inject constructor(
                             }
                         }
                     }
-                }.launchIn(viewModelScope)
+                }
         }
     }
 
     fun getPokemon(name: String, getPokemonDetails: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            pokeRepository.getPokemon(name).onEach { apiResponse ->
-                delay(10000)
-                Log.d("threadUsed", Thread.currentThread().name)
-                when (apiResponse) {
+            pokeRepository.getPokemon(name).collect { pokemonApiResponse ->
+                when (pokemonApiResponse) {
                     is Resource.Success -> {
-
-                        val pokemonDetailResponse = apiResponse.data
-                        val pokeImageUrl =
-                            Constants.BASE_ICON_URL + pokemonDetailResponse!!.pokemonId + ".png"
-                        val singlePokeEntry = PokeListEntry(
-                            pokemonName = apiResponse.data.pokemonName,
-                            imageUrl = pokeImageUrl,
-                            formattedNumber = getPokemonNumberFormatted(pokemonDetailResponse.pokemonId),
-                            number = pokemonDetailResponse.pokemonId
-                        )
-
                         if (!getPokemonDetails) {
 
                             when (_pokemonState.value.currentScreenState) {
@@ -171,13 +142,13 @@ class PokeViewModel @Inject constructor(
 
                             _pokemonState.value = UIState(
                                 false,
-                                data = listOf(singlePokeEntry),
+                                data = listOf(pokemonApiResponse.data!!.toPokeListEntry()),
                                 currentScreenState = Constants.LastResponseType.SEARCHED_POKE_LIST
                             )
                         } else {
                             _detailPokemonState.value = UIState(
                                 isLoading = false,
-                                pokemonDetailResponse,
+                                pokemonApiResponse.data?.toPokemon(),
                                 currentScreenState = Constants.LastResponseType.POKE_DETAIL
                             )
                         }
@@ -188,14 +159,14 @@ class PokeViewModel @Inject constructor(
                             _pokemonState.value = UIState(
                                 isLoading = false,
                                 null,
-                                error = apiResponse.message,
+                                error = pokemonApiResponse.message,
                                 currentScreenState = Constants.LastResponseType.SEARCHED_POKE_LIST
                             )
                         } else {
                             _detailPokemonState.value = UIState(
                                 false,
                                 null,
-                                apiResponse.message,
+                                pokemonApiResponse.message,
                                 currentScreenState = Constants.LastResponseType.POKE_DETAIL
                             )
                         }
@@ -216,41 +187,27 @@ class PokeViewModel @Inject constructor(
                         }
                     }
                 }
-            }.launchIn(viewModelScope)
+            }
         }
     }
 
     fun getPokemonByType(pokemonType: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            pokeRepository.getPokemonbyType(pokemonType).onEach { apiResponse ->
+            pokeRepository.getPokemonbyType(pokemonType).collect { apiResponse ->
                 when (apiResponse) {
                     is Resource.Success -> {
                         lastListType = Constants.LastResponseType.FILTERED_POKE_LIST
                         val response = apiResponse.data!!.pokemonType
-
                         filteredPokemonList.clear()
-
-                        response.forEach { pokemonTypeResponse ->
-                            val pokemonListResponse = pokemonTypeResponse.pokemon
-                            val pokeNumber = if (pokemonListResponse.url.endsWith("/")) {
-                                pokemonListResponse.url.dropLast(1).takeLastWhile { it.isDigit() }
-                            } else {
-                                pokemonListResponse.url.takeLastWhile { it.isDigit() }
-                            }
-                            val pokeImageUrl = Constants.BASE_ICON_URL + pokeNumber + ".png"
-                            val pokeListEntry = PokeListEntry(
-                                pokemonName = pokemonListResponse.name,
-                                imageUrl = pokeImageUrl,
-                                formattedNumber = getPokemonNumberFormatted(pokeNumber.toInt()),
-                                number = pokeNumber.toInt()
-                            )
-                            filteredPokemonList.add(pokeListEntry)
+                        response.forEach {
+                            filteredPokemonList.add(it.pokemon.toPokeListEntry())
                         }
                         _pokemonState.value = UIState(
-                            false,
-                            data = filteredPokemonList.toList(),
+                            isLoading = false,
+                            data = filteredPokemonList,
                             currentScreenState = Constants.LastResponseType.FILTERED_POKE_LIST
                         )
+
                     }
                     is Resource.Error -> {
                         _pokemonState.value = UIState(
@@ -268,39 +225,38 @@ class PokeViewModel @Inject constructor(
                         )
                     }
                 }
-            }.launchIn(viewModelScope)
+            }
         }
     }
 
-    fun savePokemon(pokemon: PokemonResonse, pokeDrawable: Bitmap) {
+    fun savePokemon(pokemon: Pokemon, pokeDrawable: Bitmap) {
         viewModelScope.launch {
-            val deferred = viewModelScope.async {
-                pokeRepository.getPokemonFromDb(pokemon.pokemonName)
-            }
-            if (deferred.await() != null) {
-                deletePokemon(pokemon)
-            } else {
-                pokemon.pokemonImage = pokeDrawable
-                pokeRepository.savePokemon(pokemon).onEach {
-                    when (it) {
-                        is Resource.Success -> {
-                            toast(Constants.ToastMessage.SAVE_SUCCESS)
-                        }
-                        is Resource.Error -> {
-                            toast(Constants.ToastMessage.SAVE_ERROR)
-                        }
-                        is Resource.Loading -> {
-
+                pokeRepository.getPokemonFromDb(pokemon.pokemonName).collect {
+                    if (it is Resource.Success) {
+                        if (it.data != null) {
+                            deletePokemon(pokemon)
+                        } else {
+                            pokemon.pokemonImage = pokeDrawable
+                            pokeRepository.savePokemon(pokemon.toPokemonEntity()).collect {
+                                when (it) {
+                                    is Resource.Success -> {
+                                        toast(Constants.ToastMessage.SAVE_SUCCESS)
+                                    }
+                                    is Resource.Error -> {
+                                        toast(Constants.ToastMessage.SAVE_ERROR)
+                                    }
+                                    is Resource.Loading -> {}
+                                }
+                            }
                         }
                     }
-                }.launchIn(viewModelScope)
-            }
+                }
         }
     }
 
-    private fun deletePokemon(pokemon: PokemonResonse) {
+    private fun deletePokemon(pokemon: Pokemon) {
         viewModelScope.launch {
-            pokeRepository.deletePokemon(pokemon).onEach {
+            pokeRepository.deletePokemon(pokemon.toPokemonEntity()).collect {
                 when (it) {
                     is Resource.Success -> {
                         toast(Constants.ToastMessage.DELETE_SUCCESS)
@@ -312,17 +268,17 @@ class PokeViewModel @Inject constructor(
 
                     }
                 }
-            }.launchIn(viewModelScope)
+            }
         }
     }
 
     fun getSavedPokemons() {
         viewModelScope.launch {
-            pokeRepository.getSavedPokemons().onEach { pokemonResponse ->
-                when (pokemonResponse) {
+            pokeRepository.getSavedPokemons().onEach { savedPokemonResponse ->
+                when (savedPokemonResponse) {
 
                     is Resource.Success -> {
-                        val savedPokemons = pokemonResponse.data
+                        val savedPokemons = savedPokemonResponse.data
                         val newPokeListEntries = mutableListOf<PokeListEntry>()
 
                         savedPokemons?.forEach {
@@ -348,7 +304,7 @@ class PokeViewModel @Inject constructor(
                             isLoading = false,
                             data = null,
                             currentScreenState = Constants.LastResponseType.SAVED_POKE_LIST,
-                            error = pokemonResponse.message
+                            error = savedPokemonResponse.message
                         )
                     }
 
@@ -365,17 +321,24 @@ class PokeViewModel @Inject constructor(
     }
 
     suspend fun getPokemonDetails(pokemonName: String) {
-        val deferred = viewModelScope.async {
-            pokeRepository.getPokemonFromDb(pokemonName)
-        }
-        if (deferred.await() != null) {
-            _detailPokemonState.value = UIState(
-                isLoading = false,
-                data = deferred.await(),
-                currentScreenState = Constants.LastResponseType.POKE_DETAIL
-            )
-        } else {
-            getPokemon(pokemonName, true)
+        pokeRepository.getPokemon(pokemonName).collect {
+            when (it) {
+                is Resource.Loading -> {
+                    _detailPokemonState.value = UIState(
+                        isLoading = true,
+                        currentScreenState = Constants.LastResponseType.POKE_DETAIL
+                    )
+                }
+                is Resource.Success -> {
+                    _detailPokemonState.value = UIState(
+                        isLoading = false,
+                        data = it.data?.toPokemon(),
+                        currentScreenState = Constants.LastResponseType.POKE_DETAIL
+                    )
+                }
+
+                else -> {}
+            }
         }
     }
 
@@ -450,9 +413,10 @@ class PokeViewModel @Inject constructor(
 
     fun two() {
         getUserByIdFromNetwork() {
-            
+
         }
     }
+
     private fun getUserByIdFromNetwork(onUserReady: (Unit) -> Unit) {
         viewModelScope.launch {
             val savedLatLong: Deferred<Unit> = async {

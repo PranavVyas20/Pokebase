@@ -1,7 +1,7 @@
 package com.example.pokedex.remote
 
 import com.example.pokedex.remote.responses.PokemonListResponse
-import com.example.pokedex.remote.responses.PokemonResonse
+import com.example.pokedex.remote.responses.PokemonResponse
 import com.example.pokedex.remote.responses.PokemonTypeListResponse
 import retrofit2.Response
 import retrofit2.http.GET
@@ -18,7 +18,7 @@ interface PokeAPi {
     @GET("pokemon/{name}")
     suspend fun getPokemon(
         @Path("name") name: String
-    ): Response<PokemonResonse>
+    ): Response<PokemonResponse>
 
     @GET("type/{name}")
     suspend fun getPokemonsByType(

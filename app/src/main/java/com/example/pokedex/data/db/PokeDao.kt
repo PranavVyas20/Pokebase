@@ -4,20 +4,20 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import com.example.pokedex.remote.responses.PokemonResonse
+import com.example.pokedex.data.models.PokemonEntity
 
 @Dao
 interface PokeDao {
 
     @Insert
-    suspend fun savePokemon(pokemon: PokemonResonse)
+    suspend fun savePokemon(pokemon: PokemonEntity)
 
     @Delete
-    suspend fun delete(pokemon: PokemonResonse)
+    suspend fun delete(pokemon: PokemonEntity)
 
     @Query("SELECT * FROM pokemon_table")
-    suspend fun getSavedPokemons(): List<PokemonResonse>
+    suspend fun getSavedPokemons(): List<PokemonEntity>
 
     @Query("SELECT * FROM pokemon_table WHERE pokemonName == :pokeName")
-    suspend fun isPokemonSaved(pokeName: String): PokemonResonse?
+    suspend fun isPokemonSaved(pokeName: String): PokemonEntity?
 }

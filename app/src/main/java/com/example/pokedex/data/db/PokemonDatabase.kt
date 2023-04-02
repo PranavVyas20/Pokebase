@@ -6,9 +6,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.pokedex.data.db.typeConverter.Converter
-import com.example.pokedex.remote.responses.PokemonResonse
+import com.example.pokedex.data.models.PokemonEntity
 
-@Database(entities = [(PokemonResonse::class)], version = 1)
+@Database(entities = [(PokemonEntity::class)], version = 1)
 @TypeConverters(Converter::class)
 abstract class PokemonDatabase: RoomDatabase() {
     abstract fun getPokeDao(): PokeDao

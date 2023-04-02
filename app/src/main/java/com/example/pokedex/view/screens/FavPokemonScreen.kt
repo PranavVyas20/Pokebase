@@ -45,7 +45,7 @@ fun FavPokemonScreen(pokeViewModel: PokeViewModel, navController: NavController)
                 columns = GridCells.Fixed(2),
                 state = rememberLazyGridState(initialFirstVisibleItemIndex = pokeViewModel.savedPokemonListItemIdx)
                 ) {
-                header {
+                item(span = { GridItemSpan(this.maxLineSpan) }) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = "Captured Pokemons", color = CustomPurpleBold,
@@ -65,16 +65,6 @@ fun FavPokemonScreen(pokeViewModel: PokeViewModel, navController: NavController)
                         navController = navController
                     )
                 }
-//                items(savedPokeState.data) {
-//                    PokeListItem(
-//                        pokemonName = it.pokemonName,
-//                        pokemonFormattedNumber = it.formattedNumber,
-//                        pokemonImageUrl = it.imageUrl,
-//                        calculateDominantColor = null,
-//                        getDominantColorAndDrawable = null,
-//                        navController = navController
-//                    )
-//                }
             }
         }
     }
